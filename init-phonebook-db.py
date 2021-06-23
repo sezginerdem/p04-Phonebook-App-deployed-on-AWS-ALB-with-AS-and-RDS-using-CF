@@ -9,7 +9,7 @@ config = {
   'raise_on_warnings': True
 }
 
-# Write a function named `init_phonebook_db` which initializes the phonebook db
+# A function named `init_phonebook_db` which initializes the phonebook db
 # Create phonebook table within mysql db and populate with sample data
 def init_phonebook_db(cursor):
     drop_table = 'DROP TABLE IF EXISTS phonebook.phonebook;'
@@ -25,8 +25,8 @@ def init_phonebook_db(cursor):
     INSERT INTO phonebook.phonebook (name, number)
     VALUES
         ("Sezgin", "1234567890"),
-        ("Sergio Taco", "67854"),
-        ("Vincenzo Altobelli", "876543554");
+        ("Cristiano Ronaldo", "67854"),
+        ("Lionel Messi", "876543554");
     """
     #cursor.execute(drop_table)
     cursor.execute(phonebook_table)
