@@ -30,7 +30,7 @@ The Phonebook Application aims to create a phonebook application in Python and d
 Input in username field          Format to convert
 --------------                   -----------------
 ''                               Warning -> 'Invalid input: Name can not be empty'
-callahan                         Callahan
+sezgin                           Sezgin
 joHn doE                         John Doe
 62267                            Warning -> 'Invalid input: Name of person should be text'
 
@@ -113,13 +113,13 @@ thousand                         Warning -> 'Invalid input: Phone number should 
 ```text
 004-phonebook-web-application (folder)
 |
-|----readme.md         # Given to the students (Definition of the project)
-|----cfn-template.yml   # To be delivered by students (Cloudformation template)
-|----app.py            # Given to the students (Python Flask Web Application)
+|----readme.md          # Given (Definition of the project)
+|----cfn-template.yml   # To be delivered by DevOps Engineer (CloudFormation template)
+|----app.py             # Given (Python Flask Web Application)
 |----templates
-        |----index.html      # Given to the students (HTML template)
-        |----add-update.html # Given to the students (HTML template)
-        |----delete.html     # Given to the students (HTML template)
+        |----index.html      # Given (HTML template)
+        |----add-update.html # Given (HTML template)
+        |----delete.html     # Given (HTML template)
 ```
 
 ## Expected Outcome
@@ -154,9 +154,9 @@ thousand                         Warning -> 'Invalid input: Phone number should 
 
 - AWS EC2 Security Groups Configuration
 
-- AWS Cloudformation Service
+- AWS CloudFormation Service
 
-- AWS Cloudformation Template Design
+- AWS CloudFormation Template Design
 
 - Git & Github for Version Control System
 
@@ -182,7 +182,7 @@ thousand                         Warning -> 'Invalid input: Phone number should 
 
 ## Steps to Solution
   
-- Step 1: Download or clone project definition from `clarusway` repo on Github 
+- Step 1: Download or clone project definition from `sezginerdem` repo on Github 
 
 - Step 2: Create project folder for local public repo on your pc
 
