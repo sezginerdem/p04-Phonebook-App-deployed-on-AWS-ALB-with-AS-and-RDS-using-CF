@@ -1,4 +1,4 @@
-# Project-04 : Phonebook Application (Python Flask) deployed on AWS Application Load Balancer with Auto Scaling and Relational Database Service using AWS Cloudformation
+# Project-04 : Phonebook App (Python Flask) deployed on AWS Application Load Balancer with Auto Scaling and Relational Database Service (RDS) using AWS Cloudformation
 
 ## Description
 
