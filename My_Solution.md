@@ -65,10 +65,23 @@ The Phonebook Application aims to create a phonebook application in Python and d
 
   - Phonebook Application Website URL should be given as output by Cloudformation Service, after the stack created.
 
+
+## Steps to Solution
+  
+- Step 1: Download or clone project definition from `sezginerdem` repo on Github 
+
+- Step 2: Create project folder for local public repo on your pc
+
+- Step 3: Write the Phonebook Application in Python
+
+- Step 4: Transform your application into web application using Python Flask framework
+
+- Step 5: Prepare a cloudformation template to deploy your app on Application Load Balancer together with RDS
+
+- Step 6: Push your application into your own public repo on Github
+
+- Step 7: Deploy your application on AWS Cloud using Cloudformation template to showcase your app
+
 ## Outcome
 
 ![Phonebook App Search Page](./search-snapshot.png)
-
-
-
-
