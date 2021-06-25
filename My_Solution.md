@@ -217,6 +217,80 @@ ALBListener:
       Port: 80 #required
       Protocol: HTTP #required
 ```
+WebServerASG adi ile AutoScaling Group olusturdum. !GetAZs "" ile ASG un tum AZ lerde olusabilecegini tanimladim. InstanceId yerien LaunchTemplate kullandim. "LaunchTemplateId: !Ref WebServerLT" satirindaki !Ref fonksiyonu ile LT nin ismini yazarak buraya cektim. "Version: !GetAtt WebServerLT.LatestVersionNumber" satiri ile LT in VersionNumber ini aldim. Bu da bir TG dinliyor. Ayni LB daki adres gostermem gibi TargetGroupARNs de !Ref fonksiyonu ile WebServerTG u adres gosteriyorum. 
+
+
+```yaml
+ WebServerASG:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      AvailabilityZones:
+        !GetAZs ""
+      DesiredCapacity: 2
+      HealthCheckGracePeriod: 300
+      HealthCheckType: ELB
+      LaunchTemplate:
+        LaunchTemplateId: !Ref WebServerLT
+        Version: !GetAtt WebServerLT.LatestVersionNumber
+      MaxSize: 3 #required
+      MinSize: 1 #required
+      TargetGroupARNs:
+        - !Ref WebServerTG
+```
+
+DB server olsuturmak icin 2 tane resource olusturmam gerekiyor. Bunlardan biri DB SG bir digeri de DB.
+
+DB icin SG tanimlamasi yaptim adina da MyDBSecurityGroup verdim. CIDRIP blog olarak 0.0.0.0/0 tanimladim ancak normalde olusturulacak VPC nin CIDRIP blogu buraya yazilmalidir veya ozellikle koymak istediginiz bir subnet araligini varsa buraya yazilabilir. EC2SecurityGroupId olarak buraya ulasacak WebServerSecurityGroup.GroupId lerini !GetAtt fonksiyonu ile getiriyorum. 
+
+
+```yaml
+ MyDBSecurityGroup:
+    Type: AWS::RDS::DBSecurityGroup
+    Properties:
+      GroupDescription: Front-end access
+      DBSecurityGroupIngress:
+        - CIDRIP: 0.0.0.0/0
+        - EC2SecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
+```
+
+DB ismini MyDatabaseServer olarak belirledim. Storage olarak 20GB belirledim. "AllowMajorVersionUpgrade: false" ile mevcut mysql versionunu kullanmak istiyorum ve major upgarde etmek istemedigimi belirtiyorum. "AutoMinorVersionUpgrade: true" ile minor upgrade istedigimi belirtiyorum.
+
+
+```yaml
+  MyDatabaseServer:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      AllocatedStorage: 20
+      AllowMajorVersionUpgrade: false 
+      AutoMinorVersionUpgrade: true
+      BackupRetentionPeriod: 0 #herhangi bir backup alma
+      DBInstanceIdentifier: phonebook-app-db2
+      DBName: phonebook
+      DBSecurityGroups: #db sg u MyDBSecurityGroup adini yazarak cektim
+        - !Ref MyDBSecurityGroup
+      Engine: MySQL #engine belirledim
+      DBInstanceClass: db.t2.micro #Required
+      EngineVersion: 8.0.19 #versionumu belirledim
+      MasterUsername: Sezgin 
+      MasterUserPassword: Sezgin_1
+      MultiAZ: false #failover senaryoda baska bir AZ de db ayaga kalkmasini istemedigim icin false yazdim
+      Port: 3306
+      PubliclyAccessible: true #VPC disindan ec2 larimin ulasmasina izin veriyorum
+```
+DNS adresine kolay erismek icin otput kismini olusturdum bunun icin asagidaki kodlamayi yaptim
+
+```yaml
+Outputs:
+  WebsiteURL:
+    Value: !Sub 
+      - http://${ALBAddress} #atadigim adresi http nin onune koydum ve boylelikle bir adres olusmus oldu
+      - ALBAddress: !GetAtt ApplicationLoadBalancer.DNSName #ALB DNS name inin atama islemini yaptim
+    Description: Phonebook Application Load Balancer URL
+```
+
+
+
 
 
 
