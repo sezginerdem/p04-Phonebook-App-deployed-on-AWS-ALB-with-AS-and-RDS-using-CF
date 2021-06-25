@@ -1,9 +1,8 @@
-# Project-04 : Phonebook App (Python Flask) deployed on AWS Application Load Balancer with Auto Scaling and Relational Database Service (RDS) using AWS CloudFormation
+# Project-04: Phonebook App (Python Flask) deployed on AWS Application Load Balancer with Auto Scaling and Relational Database Service (RDS) using AWS CloudFormation
 
 ## Description
 
-The Phonebook Application aims to create a phonebook application in Python and deployed as a web application with Flask on AWS Application Load Balancer with Auto Scaling Group of Elastic Compute Cloud (EC2) Instances and Relational Database Service (RDS) using AWS CloudFormation Service.
-
+The Phonebook Application aims to create a phonebook application via Python and deployed as a web application with Flask on AWS Application Load Balancer with Auto Scaling Group of Elastic Compute Cloud (EC2) Instances and Relational Database Service (RDS) using AWS CloudFormation Service.
 
 ## Problem Statement
 
@@ -65,12 +64,9 @@ The Phonebook Application aims to create a phonebook application in Python and d
 
   - Phonebook Application Website URL should be given as output by Cloudformation Service, after the stack created.
 
-
 ## Steps to Solution
   
 - Step 1: Download or clone project definition from `sezginerdem` repo on Github
-
-
 
 - Step 2: Create project folder for local public repo on your pc
 
@@ -288,11 +284,6 @@ Outputs:
       - ALBAddress: !GetAtt ApplicationLoadBalancer.DNSName #ALB DNS name inin atama islemini yaptim
     Description: Phonebook Application Load Balancer URL
 ```
-
-
-
-
-
 
 - Step 6: Push your application into your own public repo on Github
 
