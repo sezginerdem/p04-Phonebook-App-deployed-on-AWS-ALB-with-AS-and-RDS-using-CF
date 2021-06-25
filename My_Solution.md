@@ -80,6 +80,145 @@ The Phonebook Application aims to create a phonebook application in Python and d
 
 - Step 5: Prepare a cloudformation template to deploy your app on Application Load Balancer together with RDS
 
+CloudFormation Template imin ne ise yaradigini gosteren description bolume aciklama ekledim.
+
+```yaml
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  CloudFormation Template for Phonebook Application. This template creates Application Load Balancer 
+  with Auto Scaling Group of Amazon Linux 2 (ami-0947d2ba12ee1ff75) EC2 Instances which host Python Flask Web Application.
+  EC2 instances are placed within WebServerSecurityGroup which allows http (80) connections only from ALBSecurityGroup,
+  and allows tcp(3306) connections only within itself. RDS DB instance is placed within WebServerSecurityGroup so that
+  Database Server can communicate with Web Servers.
+  Application Load Balancer is placed within ALBSecurityGroup which allows http (80) connections from anywhere.
+  WebServerASG Auto Scaling Group is using the WebServerLT Launch Template in order to spin up instances needed.
+  WebServerLT Launch Template is configured to prepare Python Flask environment on EC2,
+  and to deploy Phonebook Application on Flask Server after downloading the app code from Github repository.
+  ```
+
+Sonrasinda resources bolumunde oncelik olarak security group ekledim. Ilk once launch template ile olusacak olan ec2larin sg larini yazdim. Default VPC kullandigim icin VPC tanimlamadim. Ingress rule tanimladigim icin engress rule tanimlamam gerek yok. Ingress rule olarak HTTP ve SSH portlarini actim. HTTP portunda CidrIp yerine SourceSecurityGroupId tanimladim. Burada !GetAtt metodu ile olusacak SG un id sini aldim. Bunun nedeni client in istek yapacagi ilk resource alb, ec2 lar da elb den gelen istekleri gerceklstirecegi icin elb sg unu buraya tanimlamam gerekiyor. 
+
+```yaml
+Resources:
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP for Flask Web Server and Ssh for entering to EC2
+      SecurityGroupIngress:
+         - IpProtocol: tcp
+           FromPort: 22
+           ToPort: 22
+           CidrIp: 0.0.0.0/0
+         - IpProtocol: tcp
+           FromPort: 80
+           ToPort: 80
+           SourceSecurityGroupId: !GetAtt ALBSecurityGroup.GroupId
+```
+
+ALBSecurityGroup adi ile alb sg olusturdum. sadece 80 portundan dinleyecegi icin sadece bu portu actim. Default VPC kullandim. 
+
+```yaml
+ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP for Application Load Balancer
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+```
+
+WebServerLT adi ile Launch Template imi olusturdum. Launch Template imde instance tipimi t2.micro olarak belirledim. Keyname olarak bende olan key imin ismini yazdim. SG olarak daha once olusturmus oldugum WebServerSecurityGroup un GroupId sini !GetAtt metodu ile aldim. Stack e verilecek ismin tag olarak atanmasi icin !Sub fonksiyonu u ile cektim. 
+
+```yaml
+WebServerLT:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData: 
+        ImageId: ami-0947d2ba12ee1ff75
+        InstanceType: t2.micro
+        KeyName: ec2keyname
+        SecurityGroupIds: 
+          - !GetAtt WebServerSecurityGroup.GroupId
+        TagSpecifications: 
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub Web Server of ${AWS::StackName} Stack
+```
+Launch Template im user datasini olusturdum. !GetAtt metodu ile db in endpointi cektim ve MyDBURI adli degiskene atadim. Bu degiskeni !cho "${MyDBURI}" > /home/ec2-user/dbserver.endpoint" komutu ile ec2 icerisinde bir dosyaya kayit ettim. Token olusturdum ve bu token sayesinde curl komutu ile githubdaki dosyalarimi cektim. En son olarak da python3 ile uygulamami calistirdim.
+```yaml
+        UserData:
+          Fn::Base64:
+            !Sub 
+              - |
+                #! /bin/bash
+                yum update -y
+                yum install python3 -y
+                pip3 install flask
+                pip3 install flask_mysql
+                echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
+                TOKEN="94eddca57871d6cbcb24babb5e0ff31f30226804"
+                FOLDER="https://$TOKEN@https://raw.githubusercontent.com/sezginerdem/p04-Phonebook-App-deployed-on-AWS-ALB-with-AS-and-RDS-using-CF/master/"
+                curl -s --create-dirs -o "/home/ec2-user/templates/index.html" -L "$FOLDER"templates/index.html
+                curl -s --create-dirs -o "/home/ec2-user/templates/add-update.html" -L "$FOLDER"templates/add-update.html
+                curl -s --create-dirs -o "/home/ec2-user/templates/delete.html" -L "$FOLDER"templates/delete.html
+                curl -s --create-dirs -o "/home/ec2-user/app.py" -L "$FOLDER"phonebook-app.py
+                python3 /home/ec2-user/app.py
+              - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
+```
+WebServerTG adi ile target group tanimlamasi yaptim. Burada bana isterlere bakarak tanimlamalari yaptim. VpcId yi de !GetAtt fonksiyonu ile WebServerSecurityGroup.VpcId den aldim. 
+
+```yaml
+ WebServerTG:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      UnhealthyThresholdCount: 3
+      HealthyThresholdCount: 2
+      VpcId: !GetAtt WebServerSecurityGroup.VpcId
+```
+
+ApplicationLoadBalancer adi ile Load Balancer olusturdum. SecurityGroup olustururken !GetAtt fonksiyonu ile ALBSecurityGroup.GroupId den SG u cektim. Default subnetlerimi buraya aldim. Application Load balancer oldugu icin Type olarak application yazdim. 
+
+```yaml
+ApplicationLoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      IpAddressType: ipv4
+      Scheme: internet-facing
+      SecurityGroups:
+        - !GetAtt ALBSecurityGroup.GroupId
+      Subnets:
+        - subnet-077c9758
+        - subnet-3246e63c
+        - subnet-3ccd235a
+        - subnet-8d8dbfb3
+        - subnet-c41ba589
+        - subnet-ed49bccc
+      Type: application
+```
+
+ALBListener adi ile listenerimi yazdim. DefaultActions da TG u dinlemesi gerektigini yazdim. TG u belirlemenin birkac farkli yontemi var ben bunu tercih ettim. "TargetGroupArn: !Ref WebServerTG" ile bunu sagladim. Type ini da forward olarak belirliyorum. Portunu 80 protocolunu de HTTP olarak belirledim. 
+
+
+```yaml
+ALBListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions: #required
+        - TargetGroupArn: !Ref WebServerTG
+          Type: forward
+      LoadBalancerArn: !Ref ApplicationLoadBalancer #required
+      Port: 80 #required
+      Protocol: HTTP #required
+```
+
+
+
 - Step 6: Push your application into your own public repo on Github
 
 - Step 7: Deploy your application on AWS Cloud using Cloudformation template to showcase your app
@@ -87,3 +226,9 @@ The Phonebook Application aims to create a phonebook application in Python and d
 ## Outcome
 
 ![Phonebook App Search Page](./search-snapshot.png)
+
+## Farkli Cozum yollari
+Baska bir ec2 ayaga kaldirisiniz bu ec2 da init-phonebook-db.py dosyasini calsirstirir. Ardindan da bu ec2 nun kisa bir sure icinde kendini termnitane etmesini saglayabilirsiniz. Onun sadece gorevi db olusturmak olur. Bunu yaptiktan sonra da phonebook-app.py icerisindeki initialize bolumunu kaldirirsiniz onceki ec2 sadece db i initialize eder ardindan da autoscalingler icerisinde kurulacak launch templatelerde initialize bolumu olmaz boyle bir initialize bolumu olmadigi icin de her yeni uretilen makina db i silmeyecektir. 
+Hazirlayacagim template de InstanceInitiatedStutdownBehaviour alanini terminate olarak ayarlayip bu template in icine initialize.py yi atip ne kadar sonra terminate edilecegini de ayarlayabilirsiniz. Userdata icerisine yerlestirilecek bir kod ile ne zaman sonra terminate edilecegini ayarlayabilirsiniz. 
+
+en zorlandigim kisim db endpoitinin ec2 icerisinde bir yere atilarak db ile ec2 arasinda baglanti kurulmasiydi. 
