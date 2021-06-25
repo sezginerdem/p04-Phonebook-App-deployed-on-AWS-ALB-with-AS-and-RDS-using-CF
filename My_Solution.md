@@ -184,6 +184,7 @@ WebServerTG adi ile target group tanimlamasi yaptim. Burada bana isterlere bakar
 
 ApplicationLoadBalancer adi ile Load Balancer olusturdum. SecurityGroup olustururken !GetAtt fonksiyonu ile ALBSecurityGroup.GroupId den SG u cektim. Default subnetlerimi buraya aldim. Application Load balancer oldugu icin Type olarak application yazdim. 
 
+
 ```yaml
 ApplicationLoadBalancer:
     Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
