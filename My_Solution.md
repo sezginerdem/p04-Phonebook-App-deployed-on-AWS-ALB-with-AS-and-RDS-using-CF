@@ -6,21 +6,64 @@ The Phonebook Application aims to create a phonebook application via Python and 
 
 ## Problem Statement
 
-- Your company has recently started a project that aims to serve as phonebook web application. You and your colleagues have started to work on the project. Your teammates have developed the UI part the project as shown in the template folder and they need your help to develop the coding part and deploying the app in development environment.
+My company has recently started a project that aims to serve as phonebook web application. Me and my colleagues have started to work on the project. My teammates have developed the UI part the project as shown in the template folder and they need your help to develop the coding part and deploying the app in development environment.
 
+## Requirements
 
 - As a first step, you need to write program that creates a phonebook, adds requested contacts to the phonebook, finds and removes the contacts from the phonebook.
 
 - Application should allow users to search, add, update and delete the phonebook records and the phonebook records should be kept in separate MySQL database in AWS RDS service. Following is the format of data to be kept in db.
 
-- As a second step, after you finish the coding, you are requested to deploy your web application using Python's Flask framework.
+  - id: unique identifier for the phone record, type is numeric.
 
+  - person: full name of person for the phone record, type is string.
+
+  - number: phone number of the person. type is numeric.
+
+- All the interactions with user on phonebook app should be done in case insensitive manner and name of the person should be formatted so that, only the first letters of each words in the name of the person should be in capital letters. If the user inputs number in the username field, user should be warned with text message.
+
+- Phone numbers in the app can be in any format, but the inputs should be checked to prevent string type. If the user inputs string in the number field, user should be warned with text message.
+
+- Example for user inputs and respective formats
+
+```text
+Input in username field          Format to convert
+--------------                   -----------------
+''                               Warning -> 'Invalid input: Name can not be empty'
+sezgin                           Sezgin
+joHn doE                         John Doe
+62267                            Warning -> 'Invalid input: Name of person should be text'
+
+Input in number field            Format to convert
+--------------                   -----------------
+''                               Warning -> 'Invalid input: Phone number can not be empty'
+1234567890                       1234567890
+546347                           546347
+thousand                         Warning -> 'Invalid input: Phone number should be in numeric format'
+```
+- As a second step, after you finish the coding, you are requested to deploy your web application using Python's Flask framework.
 
 - You need to transform your program into web application using the `index.html`, `add-update.html` and `delete.html` within the `templates` folder. Note the followings for your web application.
 
-- User should face first with `index.html` when web app started and th user should be able to;
-- The Web Application should be accessible via web browser from anywhere.
-- Lastly, after transforming your code into web application, you are requested to push your program to the project repository on the Github and deploy your solution in the development environment on AWS Cloud using AWS Cloudformation Service to showcase your project. In the development environment, you can configure your Cloudformation template using the followings,
+  - User should face first with `index.html` when web app started and th user should be able to; 
+
+    - search the phonebook using `index.html`.
+
+    - add or update a record using `add-update.html`.
+
+    - delete a record using `delete.html`.
+
+  - User input can be either integer or string, thus the input should be checked for the followings,
+
+    - The input for name should be string, and input for the phone number should be decimal number.
+
+    - When adding, updating or deleting a record, inputs can not be empty.
+
+    - If the input is not conforming with any conditions above, user should be warned using the `index.html` with template formatting.
+
+  - The Web Application should be accessible via web browser from anywhere.
+
+- Lastly, after transforming your code into web application, you are requested to push your program to the project repository on the Github and deploy your solution in the development environment on AWS Cloud using AWS CloudFormation Service to showcase your project. In the development environment, you can configure your CloudFormation template using the followings,
 
   - The application stack should be created with new AWS resources.
 
@@ -54,7 +97,7 @@ The Phonebook Application aims to create a phonebook application via Python and 
 
   - EC2 Instances type can be configured as `t2.micro`.
 
-  - Instance launched by Cloudformation should be tagged `Web Server of StackName`
+  - Instance launched by CloudFormation should be tagged `Web Server of StackName`
 
   - For RDS Database Instance;
   
@@ -62,23 +105,34 @@ The Phonebook Application aims to create a phonebook application via Python and 
 
     - Database engine can be `MySQL` with version of `8.0.19`.
 
-  - Phonebook Application Website URL should be given as output by Cloudformation Service, after the stack created.
+  - Phonebook Application Website URL should be given as output by CloudFormation Service, after the stack created.
+
 
 ## Steps to Solution
   
-- Step 1: Download or clone project definition from `sezginerdem` repo on Github
+- ### Step 1: Download or clone project definition from My repo on Github
 
-- Step 2: Create project folder for local public repo on your pc
+I cloned the project's repos to my local.
 
-- Step 3: Write the Phonebook Application in Python
+```bash
+git clone https://github.com/sezginerdem/p04-Phonebook-App-deployed-on-AWS-ALB-with-AS-and-RDS-using-CF.git
+```
 
-- Step 4: Transform your application into web application using Python Flask framework
+- ### Step 2: Write the Phonebook Application in Python
 
-- Step 5: Prepare a cloudformation template to deploy your app on Application Load Balancer together with RDS
+Looking at the requirements of the project, I wrote the Phonebook Web Application with Python.
 
-CloudFormation Template imin ne ise yaradigini gosteren description bolume aciklama ekledim.
+- ### Step 3: Transformed my application into web application using Python Flask framework
 
-```yaml
+Looking at the requirements of the project, I transform it usable in the web environment using the application Python Flask framework.
+
+- ### Step 4: Prepare a CloudFormation template to deploy your app on Application Load Balancer together with RDS
+
+I created CloudFormation to automate the deployment of my website.
+
+First of all, I added my explanation to the description section, which shows what my CloudFormation Template was written for.
+
+```yaml 
 AWSTemplateFormatVersion: 2010-09-09
 Description: |
   CloudFormation Template for Phonebook Application. This template creates Application Load Balancer 
@@ -92,7 +146,10 @@ Description: |
   and to deploy Phonebook Application on Flask Server after downloading the app code from Github repository.
   ```
 
-Sonrasinda resources bolumunde oncelik olarak security group ekledim. Ilk once launch template ile olusacak olan ec2larin sg larini yazdim. Default VPC kullandigim icin VPC tanimlamadim. Ingress rule tanimladigim icin engress rule tanimlamam gerek yok. Ingress rule olarak HTTP ve SSH portlarini actim. HTTP portunda CidrIp yerine SourceSecurityGroupId tanimladim. Burada !GetAtt metodu ile olusacak SG un id sini aldim. Bunun nedeni client in istek yapacagi ilk resource alb, ec2 lar da elb den gelen istekleri gerceklstirecegi icin elb sg unu buraya tanimlamam gerekiyor. 
+I added a security group (SG) to the Resources section as a priority. First, I wrote the SGs of the EC2s I created with the launch template (LT). I did not define VPC as I am using Default VPC. Since I defined ingress rule, I did not define ingress rule. I opened HTTP and SSH ports as ingress rule.
+
+
+I defined SourceSecurityGroupId instead of CidrIp on HTTP port. Here I got the id of the SG I created with the !GetAtt method. The reason for this is ALB is the first resource that the client would request, and I need to define the ALB SG here, since EC2s will perform requests from ALB.
 
 ```yaml
 Resources:
@@ -111,7 +168,7 @@ Resources:
            SourceSecurityGroupId: !GetAtt ALBSecurityGroup.GroupId
 ```
 
-ALBSecurityGroup adi ile alb sg olusturdum. sadece 80 portundan dinleyecegi icin sadece bu portu actim. Default VPC kullandim. 
+I named ALB SG `ALBSecurityGroup`. Since it will only listen on port 80, I only opened this port. I used default VPC.
 
 ```yaml
 ALBSecurityGroup:
@@ -125,7 +182,7 @@ ALBSecurityGroup:
           CidrIp: 0.0.0.0/0
 ```
 
-WebServerLT adi ile Launch Template imi olusturdum. Launch Template imde instance tipimi t2.micro olarak belirledim. Keyname olarak bende olan key imin ismini yazdim. SG olarak daha once olusturmus oldugum WebServerSecurityGroup un GroupId sini !GetAtt metodu ile aldim. Stack e verilecek ismin tag olarak atanmasi icin !Sub fonksiyonu u ile cektim. 
+I created my LT with the name `WebServerLT`. In LT, I set my instance type as t2.micro. I wrote the name of the key I have as the `ec2keyname`. I got the `GroupId` of the `WebServerSecurityGroup` that I had created before as an SG with the `!GetAtt` method. I used the `!Sub` function to assign the name to the stack as a tag.
 
 ```yaml
 WebServerLT:
@@ -143,7 +200,10 @@ WebServerLT:
               - Key: Name
                 Value: !Sub Web Server of ${AWS::StackName} Stack
 ```
-Launch Template im user datasini olusturdum. !GetAtt metodu ile db in endpointi cektim ve MyDBURI adli degiskene atadim. Bu degiskeni !cho "${MyDBURI}" > /home/ec2-user/dbserver.endpoint" komutu ile ec2 icerisinde bir dosyaya kayit ettim. Token olusturdum ve bu token sayesinde curl komutu ile githubdaki dosyalarimi cektim. En son olarak da python3 ile uygulamami calistirdim.
+
+I created the Launch Template im user data. I took the endpoint of the db with the !GetAtt function and assigned it to the MyDBURI variable. I saved this variable to a file in EC2 with `echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint` command. I created a token and thanks to this token, I pulled my files from GitHub with the curl command. Finally, I ran my application with `python3 /home/ec2-user/app.py`.
+
+
 ```yaml
         UserData:
           Fn::Base64:
@@ -164,7 +224,8 @@ Launch Template im user datasini olusturdum. !GetAtt metodu ile db in endpointi 
                 python3 /home/ec2-user/app.py
               - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
 ```
-WebServerTG adi ile target group tanimlamasi yaptim. Burada bana isterlere bakarak tanimlamalari yaptim. VpcId yi de !GetAtt fonksiyonu ile WebServerSecurityGroup.VpcId den aldim. 
+
+I defined the target group (TG) with the name `WebServerTG`. Here I made the configurations by looking at the requirements. I also got the `VpcId` from `WebServerSecurityGroup.VpcId` with the `!GetAtt` function.
 
 ```yaml
  WebServerTG:
@@ -178,7 +239,7 @@ WebServerTG adi ile target group tanimlamasi yaptim. Burada bana isterlere bakar
       VpcId: !GetAtt WebServerSecurityGroup.VpcId
 ```
 
-ApplicationLoadBalancer adi ile Load Balancer olusturdum. SecurityGroup olustururken !GetAtt fonksiyonu ile ALBSecurityGroup.GroupId den SG u cektim. Default subnetlerimi buraya aldim. Application Load balancer oldugu icin Type olarak application yazdim. 
+ALB with the name `ApplicationLoadBalancer`. While creating `SecurityGroups`, I pulled SG from `ALBSecurityGroup.GroupId` with `!GetAtt` function. I got my default subnets here. Since it is ALB, I defined `application` as `Type`.
 
 
 ```yaml
@@ -285,9 +346,20 @@ Outputs:
     Description: Phonebook Application Load Balancer URL
 ```
 
-- Step 6: Push your application into your own public repo on Github
+- ### Step 6: Push your application into your own public repo on Github
 
-- Step 7: Deploy your application on AWS Cloud using Cloudformation template to showcase your app
+Localimde olusturdugum dosyalarimi GitHub repoma ekledim.
+
+```bash
+git add .
+git commit -m "added phonebook.yml, init-phonebook-db.py, phonebook-app.py"
+git push
+```
+
+- ### Step 7: Deployed my application on AWS Cloud using CloudFormation template to showcase your app
+
+I opened the AWS console. First of all, I uploaded my CloudFormation template to CloudFormation/Designer. I checked if there is a problem. After seeing that there was no problem, I uploaded my CloudFormation. When I clicked on the URL in Outputs, I saw that my application was running successfully. Screenshots of index.html and result.html pages are as follows.
+
 
 ## Outcome
 
