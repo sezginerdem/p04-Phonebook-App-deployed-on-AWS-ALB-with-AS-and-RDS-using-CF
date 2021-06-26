@@ -115,7 +115,7 @@ thousand                         Warning -> 'Invalid input: Phone number should 
 I cloned the project's repos to my local.
 
 ```bash
-git clone https://github.com/sezginerdem/p04-Phonebook-App-deployed-on-AWS-ALB-with-AS-and-RDS-using-CF.git
+$ git clone https://github.com/sezginerdem/p04-Phonebook-App-deployed-on-AWS-ALB-with-AS-and-RDS-using-CF.git
 ```
 
 - ### Step 2: Write the Phonebook Application in Python
@@ -205,38 +205,38 @@ I created the Launch Template im user data. I took the endpoint of the db with t
 
 
 ```yaml
-        UserData:
-          Fn::Base64:
-            !Sub 
-              - |
-                #! /bin/bash
-                yum update -y
-                yum install python3 -y
-                pip3 install flask
-                pip3 install flask_mysql
-                echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
-                TOKEN="94eddca57871d6cbcb24babb5e0ff31f30226804"
-                FOLDER="https://$TOKEN@https://raw.githubusercontent.com/sezginerdem/p04-Phonebook-App-deployed-on-AWS-ALB-with-AS-and-RDS-using-CF/master/"
-                curl -s --create-dirs -o "/home/ec2-user/templates/index.html" -L "$FOLDER"templates/index.html
-                curl -s --create-dirs -o "/home/ec2-user/templates/add-update.html" -L "$FOLDER"templates/add-update.html
-                curl -s --create-dirs -o "/home/ec2-user/templates/delete.html" -L "$FOLDER"templates/delete.html
-                curl -s --create-dirs -o "/home/ec2-user/app.py" -L "$FOLDER"phonebook-app.py
-                python3 /home/ec2-user/app.py
-              - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
+UserData:
+  Fn::Base64:
+    !Sub 
+      - |
+        #! /bin/bash
+        yum update -y
+        yum install python3 -y
+        pip3 install flask
+        pip3 install flask_mysql
+        echo "${MyDBURI}" > /home/ec2-user/dbserver.endpoint
+        TOKEN="94eddca57871d6cbcb24babb5e0ff31f30226804"
+        FOLDER="https://$TOKEN@https://raw.githubusercontent.com/sezginerdem/p04-Phonebook-App-deployed-on-AWS-ALB-with-AS-and-RDS-using-CF/master/"
+        curl -s --create-dirs -o "/home/ec2-user/templates/index.html" -L "$FOLDER"templates/index.html
+        curl -s --create-dirs -o "/home/ec2-user/templates/add-update.html" -L "$FOLDER"templates/add-update.html
+        curl -s --create-dirs -o "/home/ec2-user/templates/delete.html" -L "$FOLDER"templates/delete.html
+        curl -s --create-dirs -o "/home/ec2-user/app.py" -L "$FOLDER"phonebook-app.py
+        python3 /home/ec2-user/app.py
+      - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
 ```
 
 I defined the target group (TG) with the name `WebServerTG`. Here I made the configurations by looking at the requirements. I also got the `VpcId` from `WebServerSecurityGroup.VpcId` with the `!GetAtt` function.
 
 ```yaml
- WebServerTG:
-    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
-    Properties:
-      Port: 80
-      Protocol: HTTP
-      TargetType: instance
-      UnhealthyThresholdCount: 3
-      HealthyThresholdCount: 2
-      VpcId: !GetAtt WebServerSecurityGroup.VpcId
+WebServerTG:
+   Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+   Properties:
+     Port: 80
+     Protocol: HTTP
+     TargetType: instance
+     UnhealthyThresholdCount: 3
+     HealthyThresholdCount: 2
+     VpcId: !GetAtt WebServerSecurityGroup.VpcId
 ```
 
 ALB with the name `ApplicationLoadBalancer`. While creating `SecurityGroups`, I pulled SG from `ALBSecurityGroup.GroupId` with `!GetAtt` function. I got my default subnets here. Since it is ALB, I defined `application` as `Type`.
@@ -244,54 +244,54 @@ ALB with the name `ApplicationLoadBalancer`. While creating `SecurityGroups`, I 
 
 ```yaml
 ApplicationLoadBalancer:
-    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
-    Properties:
-      IpAddressType: ipv4
-      Scheme: internet-facing
-      SecurityGroups:
-        - !GetAtt ALBSecurityGroup.GroupId
-      Subnets:
-        - subnet-077c9758
-        - subnet-3246e63c
-        - subnet-3ccd235a
-        - subnet-8d8dbfb3
-        - subnet-c41ba589
-        - subnet-ed49bccc
-      Type: application
+  Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+  Properties:
+    IpAddressType: ipv4
+    Scheme: internet-facing
+    SecurityGroups:
+      - !GetAtt ALBSecurityGroup.GroupId
+    Subnets:
+      - subnet-077c9758
+      - subnet-3246e63c
+      - subnet-3ccd235a
+      - subnet-8d8dbfb3
+      - subnet-c41ba589
+      - subnet-ed49bccc
+    Type: application
 ```
 
 I wrote my listener with the name `ALBListener`. I wrote that it should listen to TG in `DefaultActions`. There are several different ways to determine TG, I chose this one. I achieved this with `TargetGroupArn: !Ref WebServerTG`. I set its `Type` as `forward`. I set the 'Port' number as '80' and the protocol as 'HTTP'.
 
 ```yaml
 ALBListener:
-    Type: "AWS::ElasticLoadBalancingV2::Listener"
-    Properties:
-      DefaultActions: #required
-        - TargetGroupArn: !Ref WebServerTG
-          Type: forward
-      LoadBalancerArn: !Ref ApplicationLoadBalancer #required
-      Port: 80 #required
-      Protocol: HTTP #required
+  Type: "AWS::ElasticLoadBalancingV2::Listener"
+  Properties:
+    DefaultActions: #required
+      - TargetGroupArn: !Ref WebServerTG
+        Type: forward
+    LoadBalancerArn: !Ref ApplicationLoadBalancer #required
+    Port: 80 #required
+    Protocol: HTTP #required
 ```
 
 I created an AutoScaling Group (ASG) with the name `WebServerASG`. With `!GetAZs ""` I defined that ASG can occur in all AZs. I used `LaunchTemplate` instead of `InstanceId`. `LaunchTemplateId: !Ref WebServerLT` line with the `!Ref` function, I wrote the name of the LT and pulled it here. I got the `VersionNumber` of LT with the line `Version: !GetAtt WebServerLT.LatestVersionNumber`. This one is listening to a TG too. Just like I display the address in LB, I have shown the address of `WebServerTG` with the `!Ref` function in `TargetGroupARN`.
 
 ```yaml
- WebServerASG:
-    Type: "AWS::AutoScaling::AutoScalingGroup"
-    Properties:
-      AvailabilityZones:
-        !GetAZs ""
-      DesiredCapacity: 2
-      HealthCheckGracePeriod: 300
-      HealthCheckType: ELB
-      LaunchTemplate:
-        LaunchTemplateId: !Ref WebServerLT
-        Version: !GetAtt WebServerLT.LatestVersionNumber
-      MaxSize: 3 #required
-      MinSize: 1 #required
-      TargetGroupARNs:
-        - !Ref WebServerTG
+WebServerASG:
+  Type: "AWS::AutoScaling::AutoScalingGroup"
+  Properties:
+    AvailabilityZones:
+      !GetAZs ""
+    DesiredCapacity: 2
+    HealthCheckGracePeriod: 300
+    HealthCheckType: ELB
+    LaunchTemplate:
+      LaunchTemplateId: !Ref WebServerLT
+      Version: !GetAtt WebServerLT.LatestVersionNumber
+    MaxSize: 3 #required
+    MinSize: 1 #required
+    TargetGroupARNs:
+      - !Ref WebServerTG
 ```
 
 To create a DB server, I need to create 2 resources. One of them is DB SG and the other is DB.
@@ -300,38 +300,38 @@ I made a SG definition for the DB and gave it `MyDBSecurityGroup` for it. I defi
 
 
 ```yaml
- MyDBSecurityGroup:
-    Type: AWS::RDS::DBSecurityGroup
-    Properties:
-      GroupDescription: Front-end access
-      DBSecurityGroupIngress:
-        - CIDRIP: 0.0.0.0/0
-        - EC2SecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
+MyDBSecurityGroup:
+  Type: AWS::RDS::DBSecurityGroup
+  Properties:
+    GroupDescription: Front-end access
+    DBSecurityGroupIngress:
+      - CIDRIP: 0.0.0.0/0
+      - EC2SecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
 ```
 
 I set the DB name as `MyDatabaseServer`. I set '20GB' as 'Storage'. I want to use the current `mysql` version with `AllowMajorVersionUpgrade: false` and I specify that I do not want a major upgrade. I specify that I want a minor upgrade with `AutoMinorVersionUpgrade: true`.
 
 ```yaml
-  MyDatabaseServer:
-    Type: AWS::RDS::DBInstance
-    DeletionPolicy: Delete
-    Properties:
-      AllocatedStorage: 20
-      AllowMajorVersionUpgrade: false 
-      AutoMinorVersionUpgrade: true
-      BackupRetentionPeriod: 0 #do not get backup
-      DBInstanceIdentifier: phonebook-app-db2
-      DBName: phonebook
-      DBSecurityGroups: #Pulled the DB SG by typing the name MyDBSecurityGroup
-        - !Ref MyDBSecurityGroup
-      Engine: MySQL #set engine
-      DBInstanceClass: db.t2.micro #Required
-      EngineVersion: 8.0.19 #set version
-      MasterUsername: Sezgin 
-      MasterUserPassword: Sezgin_1
-      MultiAZ: false #wrote false because I don't want the db to stand up in another AZ in the failover scenario.
-      Port: 3306
-      PubliclyAccessible: true #Allowed my EC2s to reach
+MyDatabaseServer:
+  Type: AWS::RDS::DBInstance
+  DeletionPolicy: Delete
+  Properties:
+    AllocatedStorage: 20
+    AllowMajorVersionUpgrade: false 
+    AutoMinorVersionUpgrade: true
+    BackupRetentionPeriod: 0 #do not get backup
+    DBInstanceIdentifier: phonebook-app-db2
+    DBName: phonebook
+    DBSecurityGroups: #Pulled the DB SG by typing the name MyDBSecurityGroup
+      - !Ref MyDBSecurityGroup
+    Engine: MySQL #set engine
+    DBInstanceClass: db.t2.micro #Required
+    EngineVersion: 8.0.19 #set version
+    MasterUsername: Sezgin 
+    MasterUserPassword: Sezgin_1
+    MultiAZ: false #wrote false because I don't want the db to stand up in another AZ in the failover scenario.
+    Port: 3306
+    PubliclyAccessible: true #Allowed my EC2s to reach
 ```
 For easy access to the DNS address, I created the output section, for this I made the following coding
 

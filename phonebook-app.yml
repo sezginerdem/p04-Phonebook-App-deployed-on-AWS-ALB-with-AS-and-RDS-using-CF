@@ -66,7 +66,7 @@ Resources:
                 curl -s --create-dirs -o "/home/ec2-user/templates/add-update.html" -L "$FOLDER"templates/add-update.html
                 curl -s --create-dirs -o "/home/ec2-user/templates/delete.html" -L "$FOLDER"templates/delete.html
                 curl -s --create-dirs -o "/home/ec2-user/app.py" -L "$FOLDER"phonebook-app.py
-                python3 /home/ec2-user/app.py
+                python3 /home/ec2-user/phonebook-app.py
               - MyDBURI: !GetAtt MyDatabaseServer.Endpoint.Address
 
   WebServerTG:
@@ -87,12 +87,12 @@ Resources:
       SecurityGroups:
         - !GetAtt ALBSecurityGroup.GroupId
       Subnets:
-        - subnet-077c9758
-        - subnet-3246e63c
-        - subnet-3ccd235a
-        - subnet-8d8dbfb3
-        - subnet-c41ba589
-        - subnet-ed49bccc
+        - subnet-0562fba6947b0edd9
+        - subnet-0b5f0fd2586a3abaa
+        - subnet-0e0d921525020f594
+        - subnet-00d97e14f39234299
+        - subnet-08e6d32d32037531f
+        - subnet-0f0d5d31005fc9f0e
       Type: application
 
   ALBListener:
