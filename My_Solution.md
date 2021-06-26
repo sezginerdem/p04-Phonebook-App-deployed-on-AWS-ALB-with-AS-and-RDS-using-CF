@@ -260,8 +260,7 @@ ApplicationLoadBalancer:
       Type: application
 ```
 
-ALBListener adi ile listenerimi yazdim. DefaultActions da TG u dinlemesi gerektigini yazdim. TG u belirlemenin birkac farkli yontemi var ben bunu tercih ettim. "TargetGroupArn: !Ref WebServerTG" ile bunu sagladim. Type ini da forward olarak belirliyorum. Portunu 80 protocolunu de HTTP olarak belirledim. 
-
+I wrote my listener with the name `ALBListener`. I wrote that it should listen to TG in `DefaultActions`. There are several different ways to determine TG, I chose this one. I achieved this with `TargetGroupArn: !Ref WebServerTG`. I set its `Type` as `forward`. I set the 'Port' number as '80' and the protocol as 'HTTP'.
 
 ```yaml
 ALBListener:
@@ -274,8 +273,8 @@ ALBListener:
       Port: 80 #required
       Protocol: HTTP #required
 ```
-WebServerASG adi ile AutoScaling Group olusturdum. !GetAZs "" ile ASG un tum AZ lerde olusabilecegini tanimladim. InstanceId yerien LaunchTemplate kullandim. "LaunchTemplateId: !Ref WebServerLT" satirindaki !Ref fonksiyonu ile LT nin ismini yazarak buraya cektim. "Version: !GetAtt WebServerLT.LatestVersionNumber" satiri ile LT in VersionNumber ini aldim. Bu da bir TG dinliyor. Ayni LB daki adres gostermem gibi TargetGroupARNs de !Ref fonksiyonu ile WebServerTG u adres gosteriyorum. 
 
+I created an AutoScaling Group (ASG) with the name `WebServerASG`. With `!GetAZs ""` I defined that ASG can occur in all AZs. I used `LaunchTemplate` instead of `InstanceId`. `LaunchTemplateId: !Ref WebServerLT` line with the `!Ref` function, I wrote the name of the LT and pulled it here. I got the `VersionNumber` of LT with the line `Version: !GetAtt WebServerLT.LatestVersionNumber`. This one is listening to a TG too. Just like I display the address in LB, I have shown the address of `WebServerTG` with the `!Ref` function in `TargetGroupARN`.
 
 ```yaml
  WebServerASG:
@@ -295,9 +294,9 @@ WebServerASG adi ile AutoScaling Group olusturdum. !GetAZs "" ile ASG un tum AZ 
         - !Ref WebServerTG
 ```
 
-DB server olsuturmak icin 2 tane resource olusturmam gerekiyor. Bunlardan biri DB SG bir digeri de DB.
+To create a DB server, I need to create 2 resources. One of them is DB SG and the other is DB.
 
-DB icin SG tanimlamasi yaptim adina da MyDBSecurityGroup verdim. CIDRIP blog olarak 0.0.0.0/0 tanimladim ancak normalde olusturulacak VPC nin CIDRIP blogu buraya yazilmalidir veya ozellikle koymak istediginiz bir subnet araligini varsa buraya yazilabilir. EC2SecurityGroupId olarak buraya ulasacak WebServerSecurityGroup.GroupId lerini !GetAtt fonksiyonu ile getiriyorum. 
+I made a SG definition for the DB and gave it `MyDBSecurityGroup` for it. I defined `0.0.0.0/0` as `CIDRIP` blog. However, normally the 'CIDRIP' blog of `VPC` should be written here or if there is a subnet range that you want to put in particular, it can be written here. I brought the `WebServerSecurityGroup.GroupId` that will reach here as `EC2SecurityGroupId` with the `!GetAtt` function.
 
 
 ```yaml
@@ -310,8 +309,7 @@ DB icin SG tanimlamasi yaptim adina da MyDBSecurityGroup verdim. CIDRIP blog ola
         - EC2SecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
 ```
 
-DB ismini MyDatabaseServer olarak belirledim. Storage olarak 20GB belirledim. "AllowMajorVersionUpgrade: false" ile mevcut mysql versionunu kullanmak istiyorum ve major upgarde etmek istemedigimi belirtiyorum. "AutoMinorVersionUpgrade: true" ile minor upgrade istedigimi belirtiyorum.
-
+I set the DB name as `MyDatabaseServer`. I set '20GB' as 'Storage'. I want to use the current `mysql` version with `AllowMajorVersionUpgrade: false` and I specify that I do not want a major upgrade. I specify that I want a minor upgrade with `AutoMinorVersionUpgrade: true`.
 
 ```yaml
   MyDatabaseServer:
@@ -321,34 +319,34 @@ DB ismini MyDatabaseServer olarak belirledim. Storage olarak 20GB belirledim. "A
       AllocatedStorage: 20
       AllowMajorVersionUpgrade: false 
       AutoMinorVersionUpgrade: true
-      BackupRetentionPeriod: 0 #herhangi bir backup alma
+      BackupRetentionPeriod: 0 #do not get backup
       DBInstanceIdentifier: phonebook-app-db2
       DBName: phonebook
-      DBSecurityGroups: #db sg u MyDBSecurityGroup adini yazarak cektim
+      DBSecurityGroups: #Pulled the DB SG by typing the name MyDBSecurityGroup
         - !Ref MyDBSecurityGroup
-      Engine: MySQL #engine belirledim
+      Engine: MySQL #set engine
       DBInstanceClass: db.t2.micro #Required
-      EngineVersion: 8.0.19 #versionumu belirledim
+      EngineVersion: 8.0.19 #set version
       MasterUsername: Sezgin 
       MasterUserPassword: Sezgin_1
-      MultiAZ: false #failover senaryoda baska bir AZ de db ayaga kalkmasini istemedigim icin false yazdim
+      MultiAZ: false #wrote false because I don't want the db to stand up in another AZ in the failover scenario.
       Port: 3306
-      PubliclyAccessible: true #VPC disindan ec2 larimin ulasmasina izin veriyorum
+      PubliclyAccessible: true #Allowed my EC2s to reach
 ```
-DNS adresine kolay erismek icin otput kismini olusturdum bunun icin asagidaki kodlamayi yaptim
+For easy access to the DNS address, I created the output section, for this I made the following coding
 
 ```yaml
 Outputs:
   WebsiteURL:
     Value: !Sub 
-      - http://${ALBAddress} #atadigim adresi http nin onune koydum ve boylelikle bir adres olusmus oldu
-      - ALBAddress: !GetAtt ApplicationLoadBalancer.DNSName #ALB DNS name inin atama islemini yaptim
+      - http://${ALBAddress} #Put the address I assigned in front of HTTP and thus an address was created
+      - ALBAddress: !GetAtt ApplicationLoadBalancer.DNSName #Did the assignment of the ALB DNS name
     Description: Phonebook Application Load Balancer URL
 ```
 
-- ### Step 6: Push your application into your own public repo on Github
+- ### Step 5: Push your application into your own public repo on Github
 
-Localimde olusturdugum dosyalarimi GitHub repoma ekledim.
+I uploaded the files created in my local to my GitHub repo.
 
 ```bash
 git add .
@@ -356,7 +354,7 @@ git commit -m "added phonebook.yml, init-phonebook-db.py, phonebook-app.py"
 git push
 ```
 
-- ### Step 7: Deployed my application on AWS Cloud using CloudFormation template to showcase your app
+- ### Step 5: Deployed my application on AWS Cloud using CloudFormation template to showcase your app
 
 I opened the AWS console. First of all, I uploaded my CloudFormation template to CloudFormation/Designer. I checked if there is a problem. After seeing that there was no problem, I uploaded my CloudFormation. When I clicked on the URL in Outputs, I saw that my application was running successfully. Screenshots of index.html and result.html pages are as follows.
 
@@ -365,8 +363,8 @@ I opened the AWS console. First of all, I uploaded my CloudFormation template to
 
 ![Phonebook App Search Page](./search-snapshot.png)
 
-## Farkli Cozum yollari
-Baska bir ec2 ayaga kaldirisiniz bu ec2 da init-phonebook-db.py dosyasini calsirstirir. Ardindan da bu ec2 nun kisa bir sure icinde kendini termnitane etmesini saglayabilirsiniz. Onun sadece gorevi db olusturmak olur. Bunu yaptiktan sonra da phonebook-app.py icerisindeki initialize bolumunu kaldirirsiniz onceki ec2 sadece db i initialize eder ardindan da autoscalingler icerisinde kurulacak launch templatelerde initialize bolumu olmaz boyle bir initialize bolumu olmadigi icin de her yeni uretilen makina db i silmeyecektir. 
-Hazirlayacagim template de InstanceInitiatedStutdownBehaviour alanini terminate olarak ayarlayip bu template in icine initialize.py yi atip ne kadar sonra terminate edilecegini de ayarlayabilirsiniz. Userdata icerisine yerlestirilecek bir kod ile ne zaman sonra terminate edilecegini ayarlayabilirsiniz. 
+## Improvements in the future for the present system:
 
-en zorlandigim kisim db endpoitinin ec2 icerisinde bir yere atilarak db ile ec2 arasinda baglanti kurulmasiydi. 
+This LT is used in EC2s that will be created after both db and AS with the LT used. EC2s that will be created with AS terminate the db. I suggest a solution for this problem as well:
+Create another different EC2. Let this EC2 run the `init-phonebook-db.py` file. Then have this EC2 terminate itself after a short while. Let the task of this EC2 be just to create db. The LT to be created for AS should not have an initialize section. Since there is no such initialize section, every newly produced machine will not delete the db.
+In the template to be prepared, set the `InstanceInitiatedStutdownBehaviour` field to terminate, add `initialize.py` in this template and set how long it will terminate. You can also set when to terminate with a script to be placed in Userdata.
