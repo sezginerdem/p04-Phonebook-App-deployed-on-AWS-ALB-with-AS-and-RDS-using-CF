@@ -113,9 +113,9 @@ thousand                         Warning -> 'Invalid input: Phone number should 
 ```text
 004-phonebook-web-application (folder)
 |
-|----readme.md          # Given (Definition of the project)
-|----cfn-template.yml   # To be delivered by DevOps Engineer (CloudFormation template)
-|----app.py             # Given (Python Flask Web Application)
+|----readme.md           # Given (Definition of the project)
+|----phonebook-app.yml   # To be delivered by DevOps Engineer (CloudFormation template)
+|----phonebook-app.py    # To be delivered by DevOps Engineer (Python Flask Web Application)
 |----templates
         |----index.html      # Given (HTML template)
         |----add-update.html # Given (HTML template)
@@ -124,7 +124,7 @@ thousand                         Warning -> 'Invalid input: Phone number should 
 
 ## Expected Outcome
 
-![Phonebook App Search Page](./search-snapshot.png)
+![Phonebook App Search Page](./output-snapshot.png)
 
 ### At the end of the project, following topics are to be covered;
 
