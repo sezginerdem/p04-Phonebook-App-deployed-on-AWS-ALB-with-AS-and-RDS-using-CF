@@ -1,14 +1,16 @@
 # Project-04: Phonebook App (Python Flask) deployed on AWS Application Load Balancer with Auto Scaling and Relational Database Service (RDS) using AWS CloudFormation
 
-## Description
+## <u>Description</u>
 
 The Phonebook Application aims to create a phonebook application via Python and deployed as a web application with Flask on AWS Application Load Balancer with Auto Scaling Group of Elastic Compute Cloud (EC2) Instances and Relational Database Service (RDS) using AWS CloudFormation Service.
 
-## Problem Statement
+![Project_04](04_phonebook.png)
+
+## <u>Problem Statement</u>
 
 My company has recently started a project that aims to serve as phonebook web application. Me and my colleagues have started to work on the project. My teammates have developed the UI part the project as shown in the template folder and they need your help to develop the coding part and deploying the app in development environment.
 
-## Requirements
+## <u>Requirements</u>
 
 - As a first step, you need to write program that creates a phonebook, adds requested contacts to the phonebook, finds and removes the contacts from the phonebook.
 
@@ -108,7 +110,7 @@ thousand                         Warning -> 'Invalid input: Phone number should 
   - Phonebook Application Website URL should be given as output by CloudFormation Service, after the stack created.
 
 
-## Steps to Solution
+## <u>Steps to Solution</u>
   
 - ### Step 1: Download or clone project definition from My repo on Github
 
@@ -359,11 +361,11 @@ git push
 I opened the AWS console. First of all, I uploaded my CloudFormation template to CloudFormation/Designer. I checked if there is a problem. After seeing that there was no problem, I uploaded my CloudFormation. When I clicked on the URL in Outputs, I saw that my application was running successfully. Screenshots of index.html and result.html pages are as follows.
 
 
-## Outcome
+## <u>Outcome</u>
 
-![Phonebook App Search Page](./search-snapshot.png)
+![Phonebook App Search Page](./output-snapshot.png)
 
-## Improvements in the future for the present system:
+## <u>Improvements in the future for the present system:</u>
 
 This LT is used in EC2s that will be created after both db and AS with the LT used. EC2s that will be created with AS terminate the db. I suggest a solution for this problem as well:
 Create another different EC2. Let this EC2 run the `init-phonebook-db.py` file. Then have this EC2 terminate itself after a short while. Let the task of this EC2 be just to create db. The LT to be created for AS should not have an initialize section. Since there is no such initialize section, every newly produced machine will not delete the db.

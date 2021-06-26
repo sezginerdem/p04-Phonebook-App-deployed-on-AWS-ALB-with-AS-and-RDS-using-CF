@@ -4,6 +4,8 @@
 
 The Phonebook Application aims to create a phonebook application via Python and deployed as a web application with Flask on AWS Application Load Balancer with Auto Scaling Group of Elastic Compute Cloud (EC2) Instances and Relational Database Service (RDS) using AWS CloudFormation Service.
 
+![Project_04](04_phonebook.png)
+
 ## 2. Modules description:
 
 - Download or clone project definition from My repo on Github
@@ -58,3 +60,7 @@ In the template to be prepared, set the `InstanceInitiatedStutdownBehaviour` fie
 ## 8. Drawbacks:
 
 The problem of deleting the db when creating a new instance from AS's LT is a disadvantage.
+
+## 9. Outcome
+
+![Phonebook App Search Page](./output-snapshot.png)
